@@ -1,0 +1,261 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   @default("ACTIVE")
+  startDate   DateTime?
+  coverImage  String?
+  notes       String?
+  tags        String   @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ideas         ProjectIdea[]
+  people        ProjectPerson[]
+  conversations ProjectConversation[]
+  assets        ProjectAsset[]
+  knowledge     ProjectKnowledge[]
+}
+
+model Idea {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  problemSolved String?
+  opportunity   String?
+  notes         String?
+  status        String   @default("IDEA")
+  tags          String   @default("[]")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  projects      ProjectIdea[]
+  conversations IdeaConversation[]
+  people        IdeaPerson[]
+  assets        IdeaAsset[]
+  knowledge     IdeaKnowledge[]
+}
+
+model Person {
+  id        String   @id @default(cuid())
+  name      String
+  company   String?
+  jobTitle  String?
+  email     String?
+  phone     String?
+  website   String?
+  linkedin  String?
+  notes     String?
+  tags      String   @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects      ProjectPerson[]
+  ideas         IdeaPerson[]
+  conversations PersonConversation[]
+}
+
+model Conversation {
+  id         String    @id @default(cuid())
+  title      String
+  source     String    @default("OTHER")
+  date       DateTime?
+  url        String?
+  transcript String?
+  notes      String?
+  summary    String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  projects  ProjectConversation[]
+  ideas     IdeaConversation[]
+  people    PersonConversation[]
+  assets    ConversationAsset[]
+  knowledge ConversationKnowledge[]
+}
+
+model Knowledge {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  category  String   @default("OTHER")
+  tags      String   @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects      ProjectKnowledge[]
+  ideas         IdeaKnowledge[]
+  conversations ConversationKnowledge[]
+}
+
+model Asset {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        String   @default("OTHER")
+  url         String?
+  filePath    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projects      ProjectAsset[]
+  ideas         IdeaAsset[]
+  conversations ConversationAsset[]
+}
+
+// Junction tables
+model ProjectIdea {
+  projectId String
+  ideaId    String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  idea    Idea    @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, ideaId])
+}
+
+model ProjectPerson {
+  projectId String
+  personId  String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  person  Person  @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, personId])
+}
+
+model ProjectConversation {
+  projectId      String
+  conversationId String
+  createdAt      DateTime @default(now())
+
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, conversationId])
+}
+
+model ProjectAsset {
+  projectId String
+  assetId   String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  asset   Asset   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, assetId])
+}
+
+model ProjectKnowledge {
+  projectId   String
+  knowledgeId String
+  createdAt   DateTime @default(now())
+
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  knowledge Knowledge @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, knowledgeId])
+}
+
+model IdeaPerson {
+  ideaId    String
+  personId  String
+  createdAt DateTime @default(now())
+
+  idea   Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, personId])
+}
+
+model IdeaConversation {
+  ideaId         String
+  conversationId String
+  createdAt      DateTime @default(now())
+
+  idea         Idea         @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, conversationId])
+}
+
+model IdeaAsset {
+  ideaId    String
+  assetId   String
+  createdAt DateTime @default(now())
+
+  idea  Idea  @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, assetId])
+}
+
+model IdeaKnowledge {
+  ideaId      String
+  knowledgeId String
+  createdAt   DateTime @default(now())
+
+  idea      Idea      @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  knowledge Knowledge @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, knowledgeId])
+}
+
+model PersonConversation {
+  personId       String
+  conversationId String
+  createdAt      DateTime @default(now())
+
+  person       Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@id([personId, conversationId])
+}
+
+model ConversationAsset {
+  conversationId String
+  assetId        String
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  asset        Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, assetId])
+}
+
+model ConversationKnowledge {
+  conversationId String
+  knowledgeId    String
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  knowledge    Knowledge    @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, knowledgeId])
+}
+
+// Polymorphic timeline — no FK constraints by design
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  entityType  String
+  entityId    String
+  entityTitle String?
+  action      String
+  description String
+  metadata    String?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
